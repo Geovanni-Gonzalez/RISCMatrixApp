@@ -1,0 +1,30 @@
+{
+    "project": "RISC Matrix App",
+    "tech": [
+        "ARMv7 Assembly",
+        "Linux Syscalls (SWI)",
+        "Dynamic Memory (brk)"
+    ],
+    "features": [
+        "Matrix Creation & Random Filling (LCG)",
+        "Matrix Operations (Sum, Mul, Rotate)",
+        "Max Sum Submatrix Algorithm",
+        "Custom malloc implementation",
+        "Zero-dependency (No libc)"
+    ],
+    "stack": {
+        "language": "GNU Assembler (gas)",
+        "framework": "Linux Kernel ABI (EABI)",
+        "tools": [
+            "binutils (as, ld)",
+            "QEMU ARM User Mode",
+            "Make"
+        ],
+        "database": "Dynamic Heap (brk syscall)"
+    },
+    "screenshots": [],
+    "description": {
+        "es": "Aplicación en lenguaje ensamblador para arquitectura RISC, diseñada para realizar operaciones complejas con matrices directamente mediante manipulación de registros.",
+        "en": "Assembly language application for RISC architecture, designed to perform complex matrix operations directly through register manipulation."
+    }
+}
