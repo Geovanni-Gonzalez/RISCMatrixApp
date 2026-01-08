@@ -13,7 +13,7 @@
 .macro exit code
     mov r0, #\code
     mov r7, #SYS_EXIT
-    swi 0
+    svc 0
 .endm
 
 /* Macro to write to stdout 
@@ -24,7 +24,7 @@
     ldr r1, =\str
     mov r2, #\len
     mov r7, #SYS_WRITE
-    swi 0
+    svc 0
 .endm
 
 /* Macro for simple write if regs are already set 
@@ -33,7 +33,7 @@
 .macro sys_write
     mov r0, #STDOUT
     mov r7, #SYS_WRITE
-    swi 0
+    svc 0
 .endm
 
 /* Macro to read from stdin
@@ -44,5 +44,5 @@
     ldr r1, =\buf
     mov r2, #\len
     mov r7, #SYS_READ
-    swi 0
+    svc 0
 .endm

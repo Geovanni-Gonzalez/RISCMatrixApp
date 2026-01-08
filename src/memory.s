@@ -1,70 +1,46 @@
 /*
- * memory.s - Dynamic Memory Allocation
+ * memory.s - Static Memory Allocator
  */
 
-.include "src/macros.s"
 .global my_malloc
-.global heap_end
 
-.section .data
-    heap_start: .word 0
-    heap_end:   .word 0
+.section .bss
+.align 4
+    static_heap: .space 65536  @ 64KB heap
+    heap_ptr:    .word 0
 
 .section .text
 
 /*
- * init_heap: Initializes heap pointers (optional, can do lazy)
- * Output: R0 = current break
- */
-init_heap:
-    push {r7, lr}
-    mov r0, #0
-    mov r7, #SYS_BRK
-    swi 0
-    ldr r1, =heap_start
-    str r0, [r1]
-    ldr r1, =heap_end
-    str r0, [r1]
-    pop {r7, pc}
-
-/*
- * my_malloc: Allocates N bytes
- * Input: R0 = size in bytes
- * Output: R0 = pointer to allocated memory (or 0 if failed)
+ * my_malloc: Returns pointer from static buffer
+ * Input: R0 = size
  */
 my_malloc:
-    push {r1, r2, r7, lr}
-    mov r2, r0          @ Save requested size in R2
+    push {r1, r2, lr}
     
-    /* Get current break */
-    mov r0, #0
-    mov r7, #SYS_BRK
-    swi 0
+    @ Align size to 8 bytes
+    add r0, r0, #7
+    bic r0, r0, #7
     
-    mov r1, r0          @ R1 = current break (start of new block)
-    add r0, r0, r2      @ R0 = new break (current + size)
+    ldr r1, =heap_ptr
+    ldr r2, [r1]
     
-    /* Request new break */
-    mov r7, #SYS_BRK
-    swi 0
+    cmp r2, #0
+    ldreq r2, =static_heap  @ Init on first call
     
-    /* Check if successful (R0 should be new address) */
-    /* If failed, usually returns old break or error? In Linux brk returns current break on success?
-       Wait, sys_brk returns the new break on success. If it failed, it returns the old break.
-     */
-     
-    /* Actually we need to verify if R0 >= R1 + size? 
-       Let's assume success if R0 != R1 (if we asked for >0 bytes)
-    */
+    mov r3, r2              @ Current available address
+    add r2, r2, r0          @ Advance pointer
     
-    cmp r0, r1
-    beq malloc_fail
+    @ Check bounds
+    ldr r12, =static_heap
+    add r12, r12, #65536
+    cmp r2, r12
+    bhi malloc_fail
     
-    mov r0, r1          @ Return the *start* of the allocated block
-    b malloc_exit
+    str r2, [r1]            @ Save new pointer
+    mov r0, r3              @ Return old pointer
+    pop {r1, r2, pc}
 
 malloc_fail:
     mov r0, #0
-
-malloc_exit:
-    pop {r1, r2, r7, pc}
+    pop {r1, r2, pc}

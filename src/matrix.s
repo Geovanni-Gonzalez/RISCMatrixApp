@@ -3,6 +3,7 @@
  */
  
 .include "src/macros.s"
+.arm
 .global create_matrix
 .global free_matrix
 .global mat_rand_fill
@@ -90,7 +91,7 @@ cm_fail:
  * Input: R0 = Matrix Ptr
  */
 mat_rand_fill:
-    push {r4, r5, r6, lr}
+    push {r4, r5, r6, r7, r8, lr} @ 6 regs = 24 regs (wait 6*4=24, aligned to 8)
     mov r4, r0
     
     ldr r5, [r4, #0] @ Rows
@@ -111,14 +112,14 @@ mrf_loop:
     b mrf_loop
 
 mrf_done:
-    pop {r4, r5, r6, pc}
+    pop {r4, r5, r6, r7, r8, pc}
 
 /*
  * mat_manual_fill: Manual input (0-255)
  * Input: R0 = Matrix Ptr
  */
 mat_manual_fill:
-    push {r4, r5, r6, lr}
+    push {r4, r5, r6, r7, r8, lr} @ 6 regs
     mov r4, r0
     
     ldr r5, [r4, #0] @ Rows
@@ -142,14 +143,14 @@ mmf_loop:
     b mmf_loop
 
 mmf_done:
-    pop {r4, r5, r6, pc}
+    pop {r4, r5, r6, r7, r8, pc}
 
 /*
  * print_matrix: Prints matrix to console
  * Input: R0 = Matrix Ptr
  */
 print_matrix:
-    push {r4, r5, r6, r7, r8, lr}
+    push {r4, r5, r6, r7, r8, r9, r10, lr} @ 8 regs
     mov r4, r0
     cmp r4, #0
     beq pm_exit
@@ -163,11 +164,17 @@ pm_row_loop:
     cmp r7, r5
     bge pm_exit
     
-    mov r8, #0       @ Col counter
-    
     /* Newline between rows */
     ldr r1, =newline
     bl print_str
+    
+    /* Print [ */
+    mov r0, #'['
+    bl print_char
+    mov r0, #' '
+    bl print_char
+    
+    mov r8, #0       @ Col counter
     
 pm_col_loop:
     cmp r8, r6
@@ -176,7 +183,7 @@ pm_col_loop:
     ldr r0, [r4], #4 @ Load int
     bl print_int
     
-    /* Print spacer tab/space */
+    /* Print spacer */
     ldr r1, =spacer
     bl print_str
     
@@ -184,20 +191,24 @@ pm_col_loop:
     b pm_col_loop
 
 pm_row_done:
+    /* Print ] */
+    mov r0, #']'
+    bl print_char
+
     add r7, r7, #1
     b pm_row_loop
 
 pm_exit:
     ldr r1, =newline
     bl print_str
-    pop {r4, r5, r6, r7, r8, pc}
+    pop {r4, r5, r6, r7, r8, r9, r10, pc}
 
 /*
  * mat_op_sum: Adds Matrix A and B
  * Input: R0 = Mat A, R1 = Mat B
  */
 mat_op_sum:
-    push {r4, r5, r6, r7, r8, r9, r10, lr}
+    push {r4, r5, r6, r7, r8, r9, r10, r11, r12, lr} @ 10 regs
     mov r4, r0
     mov r5, r1
     
@@ -225,16 +236,24 @@ mat_op_sum:
     ldr r0, =msg_res
     bl print_str
     
+    ldr r6, [r4, #0] @ Rows
+    ldr r7, [r4, #4] @ Cols
     mul r10, r6, r7 @ Total elements
     ldr r4, [r4, #8]
     ldr r5, [r5, #8]
     
-    mov r6, #0 @ Counter
-    mov r7, #0 @ Col counter for formatting
-    
-sum_loop:
-    cmp r6, r10
+    mov r8, #0 @ Row counter
+sum_row_loop:
+    cmp r8, r6
     bge sum_exit
+    
+    ldr r1, =newline
+    bl print_str
+    
+    mov r9, #0 @ Col counter
+sum_col_loop:
+    cmp r9, r7
+    bge sum_row_done
     
     ldr r0, [r4], #4
     ldr r1, [r5], #4
@@ -244,25 +263,22 @@ sum_loop:
     ldr r1, =spacer
     bl print_str
     
-    add r6, r6, #1
-    
-    /* Formatting? We lost row info, but we have R7(A Cols) stored? No lost it.
-       Let's just print simple list or recover formatting.
-       Actually, prompt asks for "Presentación visual". 
-       Recover cols from stack? Or re-read?
-       Let's assume simple space separated.
-    */
-    b sum_loop
+    add r9, r9, #1
+    b sum_col_loop
+
+sum_row_done:
+    add r8, r8, #1
+    b sum_row_loop
     
 sum_exit:
     ldr r1, =newline
     bl print_str
-    pop {r4, r5, r6, r7, r8, r9, r10, pc}
+    pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
 
 sum_fail:
     ldr r1, =msg_err_dim
     bl print_str
-    pop {r4, r5, r6, r7, r8, r9, r10, pc}
+    pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
 
 /*
  * mat_op_mul: Multiplies Matrix A and B
@@ -273,7 +289,7 @@ sum_fail:
  * input: R0 = Mat A, R1 = Mat B
  */
 mat_op_mul:
-    push {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+    push {r4, r5, r6, r7, r8, r9, r10, r11, r12, lr}
     mov r4, r0 @ A
     mov r5, r1 @ B
     
@@ -349,12 +365,12 @@ mul_outer_next:
 mul_exit:
     ldr r1, =newline
     bl print_str
-    pop {r4, r5, r6, r7, r8, r9, r10, r11, pc}
+    pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
 
 mul_fail:
     ldr r1, =msg_err_dim_mul
     bl print_str
-    pop {r4, r5, r6, r7, r8, r9, r10, r11, pc}
+    pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
 
 
 /*
@@ -363,145 +379,246 @@ mul_fail:
  * Output: R0 = New Matrix Ptr (or 0 if fail/no change)
  */
 mat_op_rot:
-    push {r4, r5, r6, r7, r8, r9, r10, lr}
+    push {r4, r5, r6, r7, r8, r9, r10, r11, r12, lr}
     mov r4, r0
     
     cmp r4, #0
     beq rot_fail
     
-    ldr r5, [r4, #0] @ Rows
-    ldr r6, [r4, #4] @ Cols
+    ldr r5, [r4, #0] @ Rows (M)
+    ldr r6, [r4, #4] @ Cols (N)
     
-    cmp r5, r6       @ Square check
-    bne rot_fail
-    
-    /* Ask Angle (simplified for this snippet, usually passed in args)
-       The prompt says user enters angle. I'll read it here.
-    */
     ldr r0, =msg_angle
     bl print_str
     bl read_int
     mov r7, r0       @ Angle
     
-    /* Normalize angle: (Angle / 90) % 4 */
-    /* ... Math ... Assume valid 90/180/270/360 input for MVP */
+    /* Determine New Dimensions */
+    cmp r7, #180
+    moveq r8, r5     @ New Rows = M
+    moveq r9, r6     @ New Cols = N
+    beq rot_alloc
     
-    cmp r7, #90
-    beq rot_90
-    /* Handle others by looping or just doing 90 once for demo */
-    b rot_90         @ Forcing 90 logic for now
+    /* 90 or 270: Swapped dimensions */
+    mov r8, r6       @ New Rows = N
+    mov r9, r5       @ New Cols = M
 
-rot_90:
-    /* Allocate New Matrix (Same size) */
-    /* 1. Header (12 bytes) */
+rot_alloc:
+    /* Allocate Header (12 bytes) */
     mov r0, #12
     bl my_malloc
-    mov r8, r0       @ New Struct
+    mov r10, r0      @ New Struct Ptr
+    str r8, [r10, #0] @ Store New Rows
+    str r9, [r10, #4] @ Store New Cols
     
-    str r5, [r8, #0] @ Rows
-    str r6, [r8, #4] @ Cols
-    mul r0, r5, r6
+    /* Allocate Data */
+    mul r0, r8, r9
     lsl r0, r0, #2
     bl my_malloc
-    str r0, [r8, #8] @ New Data
+    str r0, [r10, #8] @ Store New Data Ptr
+    mov r11, r0      @ New Data Ptr
     
-    ldr r4, [r4, #8] @ Old Data
-    ldr r9, [r8, #8] @ New Data
+    ldr r4, [r4, #8] @ Old Data Ptr
     
-    /* Logic: New[j][N-1-i] = Old[i][j]
-       i (r0) from 0 to N-1
-       j (r1) from 0 to N-1
-    */
-    mov r0, #0       @ i
-r_outer:
+    /* Loop through Old Matrix */
+    mov r0, #0       @ i (0..M-1)
+rot_outer:
     cmp r0, r5
-    bge r_done
+    bge rot_done
     
-    mov r1, #0       @ j
-r_inner:
+    mov r1, #0       @ j (0..N-1)
+rot_inner:
     cmp r1, r6
-    bge r_next_row
+    bge rot_next_row
     
     /* Load Old[i][j] */
     mul r2, r0, r6
     add r2, r2, r1
-    lsl r2, r2, #2
-    ldr r3, [r4, r2]
+    ldr r3, [r4, r2, lsl #2]
     
-    /* Calc New[j][N-1-i] */
-    /* Dest Row = j (r1) */
-    /* Dest Col = (N-1) - i = (r5 - 1) - r0 */
-    sub r10, r5, #1
-    sub r10, r10, r0
+    /* Calc New Address based on angle */
+    cmp r7, #180
+    beq rot_calc_180
+    mov r12, #210
+    add r12, r12, #60 @ 270
+    cmp r7, r12
+    beq rot_calc_270
     
-    mul r2, r1, r6
-    add r2, r2, r10
-    lsl r2, r2, #2
-    str r3, [r9, r2]
+rot_calc_90: @ Default to 90 if not 180 or 270
+    /* NewRow = j (r1), NewCol = (M-1) - i = (r5-1) - r0 */
+    sub r12, r5, #1  @ M-1
+    sub r12, r12, r0 @ (M-1) - i
+    mul r2, r1, r9   @ j * NewCols (NewCols is M for 90/270)
+    add r2, r2, r12  @ (j * NewCols) + ((M-1)-i)
+    b rot_store
+
+rot_calc_180:
+    /* NewRow = (M-1) - i, NewCol = (N-1) - j */
+    sub r12, r5, #1  @ M-1
+    sub r12, r12, r0 @ (M-1) - i (NewRow)
+    mul r2, r12, r9  @ NewRow * NewCols (NewCols is N for 180)
+    sub r12, r6, #1  @ N-1
+    sub r12, r12, r1 @ (N-1) - j (NewCol)
+    add r2, r2, r12  @ (NewRow * NewCols) + NewCol
+    b rot_store
+
+rot_calc_270:
+    /* NewRow = (N-1) - j, NewCol = i */
+    sub r12, r6, #1  @ N-1
+    sub r12, r12, r1 @ (N-1) - j (NewRow)
+    mul r2, r12, r9  @ NewRow * NewCols (NewCols is M for 90/270)
+    add r2, r2, r0   @ (NewRow * NewCols) + i (NewCol)
+    
+rot_store:
+    str r3, [r11, r2, lsl #2]
     
     add r1, r1, #1
-    b r_inner
-    
-r_next_row:
-    add r0, r0, #1
-    b r_outer
+    b rot_inner
 
-r_done:
-    mov r0, r8       @ Return new matrix
+rot_next_row:
+    add r0, r0, #1
+    b rot_outer
+
+rot_done:
+    mov r0, r10      @ Return new matrix
     ldr r1, =msg_rot_done
     bl print_str
-    pop {r4, r5, r6, r7, r8, r9, r10, pc}
+    pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
 
 rot_fail:
-    ldr r1, =msg_sq_err
+    ldr r1, =msg_invalid_rot
     bl print_str
     mov r0, #0
-    pop {r4, r5, r6, r7, r8, r9, r10, pc}
+    pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
+
+/*
+ * mat_op_submax: Finds max sum submatrix
+ * Input: R0 = Matrix Ptr
+ */
+/*
+ * kadane_1d: Finds max subarray sum
+ * Input: R0 = ptr to array, R1 = length
+ * Output: R0 = max sum
+ */
+kadane_1d:
+    push {r4, r5, r6, r7, r8, lr}
+    mov r4, r0         @ Array ptr
+    mov r5, r1         @ Length
+    
+    ldr r6, =0x80000000 @ max_so_far = MIN_INT
+    mov r7, #0         @ max_ending_here = 0
+    
+    mov r2, #0         @ Counter
+k1d_loop:
+    cmp r2, r5
+    bge k1d_done
+    
+    ldr r3, [r4, r2, lsl #2]
+    add r7, r7, r3
+    
+    cmp r6, r7
+    movlt r6, r7       @ if (max_so_far < max_ending_here) max_so_far = max_ending_here
+    
+    cmp r7, #0
+    movlt r7, #0       @ if (max_ending_here < 0) max_ending_here = 0
+    
+    add r2, r2, #1
+    b k1d_loop
+
+k1d_done:
+    mov r0, r6
+    pop {r4, r5, r6, r7, r8, pc}
 
 /*
  * mat_op_submax: Finds max sum submatrix
  * Input: R0 = Matrix Ptr
  */
 mat_op_submax:
-    push {r4, r5, r6, r7, r8, r9, r10, r11, lr}
-    mov r4, r0
+    push {r4, r5, r6, r7, r8, r9, r10, r11, r12, lr}
+    sub sp, sp, #80    @ temp array (20*4 bytes)
+    
+    mov r4, r0         @ Matrix Ptr
     cmp r4, #0
     beq subm_exit
     
-    ldr r5, [r4, #0] @ Rows
-    ldr r6, [r4, #4] @ Cols
-    ldr r4, [r4, #8] @ Data
+    ldr r5, [r4, #0]   @ Rows (M)
+    ldr r6, [r4, #4]   @ Cols (N)
+    ldr r4, [r4, #8]   @ Data Ptr
     
-    ldr r7, =0x80000000 @ Min Int (approx)
-    mov r11, r7         @ Max Sum found so far
+    ldr r7, =0x80000000 @ Global Max Sum (r7)
     
-    /* O(N^4) loops:
-       r0: r1 (0..Rows)
-       r1: r2 (r1..Rows)
-       r2: c1 (0..Cols)
-       r3: c2 (c1..Cols)
-    */
-    /* Note: simplified variable names in comments, using stack or registers */
-    /* This is very register heavy. We will need to use stack. */
-    /* Impl skipped for brevity in full O(N^4), doing simplified check or just printing TODO if too complex for single pass */
+    mov r8, #0         @ topRow (r8)
+top_row_loop:
+    cmp r8, r5
+    bge subm_print
     
-    /* Let's implemented a simpler version: Just max submatrix of fixed size? No, prompt says 'todas las submatrices validas' */
+    /* Clear temp array */
+    mov r0, #0
+clear_temp:
+    cmp r0, r6
+    bge start_bottom_row
+    mov r1, #0
+    add r2, sp, r0, lsl #2
+    str r1, [r2]
+    add r0, r0, #1
+    b clear_temp
+
+start_bottom_row:
+    mov r9, r8         @ bottomRow (r9)
+bottom_row_loop:
+    cmp r9, r5
+    bge next_top_row
     
-    /* Logic requires summing blocks. */
-    ldr r0, =msg_submax_res
+    /* Update temp array with elements from current bottomRow */
+    mov r10, #0        @ col counter (r10)
+update_temp:
+    cmp r10, r6
+    bge run_kadane
+    
+    /* Element at [r9][r10]: DataPtr + (r9 * N + r10)*4 */
+    mul r0, r9, r6
+    add r0, r0, r10
+    ldr r1, [r4, r0, lsl #2]
+    
+    /* temp[r10] += element */
+    add r2, sp, r10, lsl #2
+    ldr r3, [r2]
+    add r3, r3, r1
+    str r3, [r2]
+    
+    add r10, r10, #1
+    b update_temp
+
+run_kadane:
+    mov r0, sp         @ temp array ptr
+    mov r1, r6         @ length = Cols
+    bl kadane_1d
+    
+    cmp r0, r7
+    movgt r7, r0       @ Update Global Max
+    
+    add r9, r9, #1
+    b bottom_row_loop
+
+next_top_row:
+    add r8, r8, #1
+    b top_row_loop
+
+subm_print:
+    ldr r1, =msg_submax_res
     bl print_str
-    /* Placeholder value to show flow */
-    mov r0, #999
+    mov r0, r7
     bl print_int
     ldr r1, =newline
     bl print_str
     
 subm_exit:
-    pop {r4, r5, r6, r7, r8, r9, r10, r11, pc}
+    add sp, sp, #80
+    pop {r4, r5, r6, r7, r8, r9, r10, r11, r12, pc}
 
 .section .data
     newline: .ascii "\n\0"
-    spacer:  .ascii " \t\0"
+    spacer:  .ascii "  \0"
     msg_res: .ascii "\nResultado Suma:\n\0"
     msg_res_mul: .ascii "\nResultado Multiplicacion:\n\0"
     msg_err_dim: .ascii "Error: Dimensiones incompatibles.\n\0"
@@ -511,6 +628,4 @@ subm_exit:
     msg_rot_done: .ascii "Rotacion Completa. Nueva Matriz asignada.\n\0"
     msg_sq_err: .ascii "Error: Matriz debe ser cuadrada.\n\0"
     msg_submax_res: .ascii "Suma Maxima: \0"
-
-
-
+    msg_invalid_rot: .ascii "Error en Rotacion.\n\0"
