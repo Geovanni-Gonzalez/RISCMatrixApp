@@ -1,30 +1,56 @@
 {
-    "project": "RISC Matrix App",
-    "tech": [
-        "ARMv7 Assembly",
-        "Linux Syscalls (SWI)",
-        "Dynamic Memory (brk)"
-    ],
-    "features": [
-        "Matrix Creation & Random Filling (LCG)",
-        "Matrix Operations (Sum, Mul, Rotate)",
-        "Max Sum Submatrix Algorithm",
-        "Custom malloc implementation",
-        "Zero-dependency (No libc)"
-    ],
-    "stack": {
-        "language": "GNU Assembler (gas)",
-        "framework": "Linux Kernel ABI (EABI)",
-        "tools": [
-            "binutils (as, ld)",
-            "QEMU ARM User Mode",
-            "Make"
+    "en": {
+        "tech": [
+            "ARMv7 Assembly",
+            "Linux Syscalls (SWI)",
+            "Dynamic memory management",
+            "Low-level Algorithms"
         ],
-        "database": "Dynamic Heap (brk syscall)"
+        "features": [
+            "Matrix operations: Sum, Multiplication, Rotation",
+            "Advanced Max Sum Submatrix searching algorithm",
+            "Custom malloc/free implementation using 'brk' syscall",
+            "Pseudo-random number generation (LCG) at register level",
+            "Zero-dependency binary (No C standard library)"
+        ],
+        "stack": {
+            "language": "ARM Assembly",
+            "framework": "Native Linux Interface",
+            "tools": [
+                "GNU Assembler (as)",
+                "GNU Linker (ld)",
+                "QEMU"
+            ],
+            "database": "Heap Management"
+        },
+        "screenshots": [],
+        "description": "A raw engineering masterpiece that performs high-speed matrix computations directly through ARMv7 register manipulation. This project eschews the C standard library entirely, implementing its own dynamic memory allocator using the 'brk' syscall and a pseudo-random generator at the instruction level. It solves complex mathematical problems, such as finding the submatrix with the maximum sum, within a zero-dependency binary, showcasing the peak of efficient resource usage and the power of assembly-level optimization."
     },
-    "screenshots": [],
-    "description": {
-        "es": "Aplicación en lenguaje ensamblador para arquitectura RISC, diseñada para realizar operaciones complejas con matrices directamente mediante manipulación de registros.",
-        "en": "Assembly language application for RISC architecture, designed to perform complex matrix operations directly through register manipulation."
+    "es": {
+        "tech": [
+            "Ensamblador ARMv7",
+            "Llamadas al sistema Linux (SWI)",
+            "Gestión dinámica de memoria",
+            "Algoritmos de bajo nivel"
+        ],
+        "features": [
+            "Operaciones con matrices: Suma, Multiplicación, Rotación",
+            "Algoritmo avanzado de búsqueda de submatriz de suma máxima",
+            "Implementación personalizada de malloc/free mediante syscall 'brk'",
+            "Generación de números pseudoaleatorios (LCG) a nivel de registros",
+            "Binario sin dependencias (Sin librería estándar de C)"
+        ],
+        "stack": {
+            "language": "Ensamblador ARM",
+            "framework": "Interfaz Nativa de Linux",
+            "tools": [
+                "GNU Assembler (as)",
+                "GNU Linker (ld)",
+                "QEMU"
+            ],
+            "database": "Gestión de Heap"
+        },
+        "screenshots": [],
+        "description": "Una pieza de ingeniería pura que realiza cómputos de matrices de alta velocidad directamente mediante la manipulación de registros ARMv7. Este proyecto evita por completo la librería estándar de C, implementando su propio asignador dinámico de memoria y un generador pseudoaleatorio a nivel de instrucción. Resuelve problemas matemáticos complejos, como la búsqueda de la submatriz de suma máxima, dentro de un binario sin dependencias, exhibiendo el pico del uso eficiente de recursos."
     }
 }
