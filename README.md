@@ -1,60 +1,80 @@
-# RISCMatrixApp - Operaciones con Matrices en ARM Assembly
-
-**Curso:** Arquitectura de Computadores
-**Proyecto:** 02 - Operaciones con Matrices (RISC)
-**Plataforma:** Raspberry Pi (ARMv7) / QEMU (Raspbian)
+﻿# RISC Matrix App
 
 ## Descripción
+Aplicación en ensamblador orientada a operaciones con matrices, organizada en memoria, macros, utilidades y lógica principal.
 
-Programa de consola desarrollado en lenguaje ensamblador puro (utilizando solo `as` y `ld`) que permite la manipulación de matrices dinámicas. El sistema gestiona la memoria manualmente mediante llamadas al sistema (syscalls) para ofrecer funcionalidades de creación, aritmética y análisis de matrices.
+## Objetivo
+Practicar bajo nivel, manejo de memoria y operaciones matriciales.
 
-## Estructura del Proyecto
+## Tecnologías utilizadas
+- Assembly
+- Makefile
+- Bajo nivel
+- Consola
 
-- `src/`: Código fuente (.s)
-  - `main.s`: Lógica principal y manejo de menús.
-  - `matrix.s`: Lógica de operaciones matriciales (Suma, Multiplicación, Rotación).
-  - `memory.s`: Gestor de memoria dinámica (`malloc` personalizado usando `brk`).
-  - `utils.s`: Utilidades de Entrada/Salida (Conversiones ASCII-Entero, Impresión de cadenas).
-  - `macros.s`: Definiciones de macros y constantes del sistema.
-- `Makefile`: Script de compilación y enlazado.
+## Funcionalidades principales
+- Operaciones de matriz
+- Gestión de memoria
+- Macros/utilidades
+- Makefile
+- Archivos de prueba
 
-## Requerimientos Previos
+## Mi rol
+Implementé rutinas en ensamblador para operaciones y soporte.
 
-- Sistema Operativo Linux (Raspbian recomendado).
-- Herramientas GNU Binutils (`as`, `ld`).
-- Arquitectura ARM (via hardware real o emulación QEMU).
+## Aprendizajes clave
+- Matrices en memoria
+- Macros ASM
+- Compilación modular
+- Depuración bajo nivel
 
-## Compilación y Ejecución
-
-Para compilar el proyecto, navegue a la carpeta raíz y ejecute:
-
+## Instalación y ejecución
+El Makefile está preparado para ARMv7/Raspberry Pi y permite sobrescribir `AS` y `LD`.
 ```bash
+cd RISCMatrixApp
 make
-```
-
-Esto generará el ejecutable `matrix_app`. Para correrlo:
-
-```bash
 ./matrix_app
 ```
-
-Para limpiar los archivos objeto:
-
+En WSL/x86 puede requerir toolchain cruzado:
 ```bash
-make clean
+make AS=arm-linux-gnueabihf-as LD=arm-linux-gnueabihf-ld
 ```
 
-## Funcionalidades
+## Estructura del proyecto
+- src/main.s: flujo
+- src/matrix.s: matrices
+- src/memory.s: memoria
+- src/macros.s y utils.s: soporte
+- Makefile: build
 
-1. **Crear Matrices**: Generación manual (0-255) o automática (0-1023).
-2. **Suma**: Suma de Matriz A y Matriz B.
-3. **Multiplicación**: Producto matricial A x B.
-4. **Rotación**: Rotación de 90° en sentido horario (Matrices cuadradas).
-5. **Submatriz Máxima**: Cálculo de la submatriz con mayor suma.
-6. **Mostrar**: Visualización de las matrices actuales.
+## Capturas o demo
+![Captura principal](screenshots/principalImage.png)
 
-## Notas de Desarrollo
+## Estado del proyecto
+Proyecto académico funcional según entorno.
 
-- Se utiliza el syscall `brk` (45) para la gestión del Heap.
-- No se utilizan librerías estándar de C (libc). Todo el IO es mediante `sys_read` y `sys_write`.
-- Se implementó un generador de números pseudoaleatorios (LCG) para el llenado automático.
+## Valor técnico demostrado
+Evidencia implementación de algoritmos sin abstracciones de alto nivel.
+
+## Mejoras futuras
+- Agregar guía de instalación del toolchain ARM
+- Agregar ejemplos
+- Separar objetos compilados
+
+## Autor
+Geovanni González  
+Estudiante de Ingeniería en Computación  
+GitHub: [Geovanni-Gonzalez](https://github.com/Geovanni-Gonzalez)
+
+
+
+
+
+
+
+
+
+
+
+
+
