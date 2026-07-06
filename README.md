@@ -1,5 +1,7 @@
 ﻿# RISC Matrix App
 
+[![CI](https://github.com/Geovanni-Gonzalez/RISCMatrixApp/actions/workflows/ci.yml/badge.svg)](https://github.com/Geovanni-Gonzalez/RISCMatrixApp/actions/workflows/ci.yml)
+
 ## Descripción
 Aplicación en ensamblador orientada a operaciones con matrices, organizada en memoria, macros, utilidades y lógica principal.
 
