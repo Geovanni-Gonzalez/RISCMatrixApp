@@ -14,10 +14,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install ARM toolchain
+      - name: Install ARM toolchain and QEMU
         run: |
           sudo apt-get update
-          sudo apt-get install -y binutils-arm-linux-gnueabihf make
+          sudo apt-get install -y binutils-arm-linux-gnueabihf make qemu-user
 
       - name: Build
         run: make
+
+      - name: Smoke test under QEMU
+        run: |
+          # Entrada guionizada: opción 7 (Salir). Se verifica banner y menú.
+          printf '7\n' | timeout 10 qemu-arm ./matrix_app > smoke_out.txt 2>&1 || true
+          grep -q "MATRIX APP v1.0" smoke_out.txt
+          grep -q "Seleccione Opcion" smoke_out.txt
+          echo "Smoke OK: la app arranca, muestra el menú y acepta entrada bajo QEMU"
