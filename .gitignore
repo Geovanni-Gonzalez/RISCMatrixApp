@@ -26,3 +26,7 @@ desktop.ini
 *.log
 *.tmp
 *.bak
+
+# Ejecutables compilados
+matrix_app
+testv
